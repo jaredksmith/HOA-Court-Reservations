@@ -34,10 +34,12 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 					id: '1',
 					user_id: '1',
 					full_name: 'Admin User',
+					phone_number: '+15551234567',
 					household_id: 'household-1',
 					prime_hours: 10,
 					standard_hours: 15,
-					is_admin: true
+					is_admin: true,
+					last_reset: new Date().toISOString()
 				}
 			});
 		}

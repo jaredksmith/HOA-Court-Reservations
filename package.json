@@ -10,7 +10,9 @@
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "prettier --plugin-search-dir . --check . && eslint .",
-    "format": "prettier --plugin-search-dir . --write ."
+    "format": "prettier --plugin-search-dir . --write .",
+    "test:db": "node scripts/test-db.js",
+    "setup:env": "cp .env.example .env && echo 'Please edit .env with your Supabase credentials'"
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "^2.0.0",
@@ -32,6 +34,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.0",
+    "dotenv": "^16.5.0",
     "web-push": "^3.6.6"
   },
   "type": "module",

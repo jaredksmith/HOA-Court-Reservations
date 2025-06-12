@@ -1,7 +1,7 @@
 import webpush from 'web-push';
 import { env } from '$env/dynamic/private';
 import { db, supabase } from '$lib/server/db';
-import type { PushSubscription } from '$lib/types';
+import type { PushSubscription, Profile } from '$lib/types';
 
 // Configure web-push with VAPID keys
 if (env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY && env.VAPID_EMAIL) {
@@ -206,7 +206,7 @@ export async function sendBookingReminder(
     '24h': '24 hours',
     '2h': '2 hours'
   };
-  
+
   const notification: PushNotificationData = {
     title: 'Booking Reminder',
     body: `Your court booking starts in ${timeLabels[reminderType]}`,
@@ -216,6 +216,102 @@ export async function sendBookingReminder(
       reminderType
     }
   };
-  
+
   await sendPushNotificationToUsers(userIds, notification);
+}
+
+/**
+ * Send push notifications to users by phone numbers
+ * Useful for targeting users when you have their phone numbers
+ */
+export async function sendPushNotificationByPhones(
+  phoneNumbers: string[],
+  notification: PushNotificationData
+): Promise<void> {
+  try {
+    // Get user IDs from phone numbers
+    const { data: profiles, error: profileError } = await supabase
+      .from('profiles')
+      .select('user_id, phone_number, full_name')
+      .in('phone_number', phoneNumbers);
+
+    if (profileError) {
+      console.error('Error fetching profiles by phone numbers:', profileError);
+      return;
+    }
+
+    if (!profiles || profiles.length === 0) {
+      console.log('No users found for phone numbers:', phoneNumbers);
+      return;
+    }
+
+    const userIds = profiles.map(profile => profile.user_id);
+    console.log(`Sending notifications to ${profiles.length} users found by phone numbers`);
+
+    // Use existing function to send notifications
+    await sendPushNotificationToUsers(userIds, notification);
+  } catch (error) {
+    console.error('Error sending push notifications by phone numbers:', error);
+  }
+}
+
+/**
+ * Get user profile by phone number
+ * Useful for user lookup and verification
+ */
+export async function getUserByPhoneNumber(phoneNumber: string): Promise<Profile | null> {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('phone_number', phoneNumber)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No rows returned
+        return null;
+      }
+      throw error;
+    }
+
+    return data as Profile;
+  } catch (error) {
+    console.error('Error fetching user by phone number:', error);
+    return null;
+  }
+}
+
+/**
+ * Send booking invitation by phone numbers
+ */
+export async function sendBookingInvitationByPhones(
+  phoneNumbers: string[],
+  bookingDetails: {
+    id: string;
+    organizer: string;
+    startTime: string;
+    courts: number[];
+  }
+): Promise<void> {
+  const notification: PushNotificationData = {
+    title: 'Court Booking Invitation',
+    body: `${bookingDetails.organizer} invited you to play on court ${bookingDetails.courts.join(', ')}`,
+    data: {
+      bookingId: bookingDetails.id,
+      type: 'booking_invitation'
+    },
+    actions: [
+      {
+        action: 'accept',
+        title: 'Accept'
+      },
+      {
+        action: 'decline',
+        title: 'Decline'
+      }
+    ]
+  };
+
+  await sendPushNotificationByPhones(phoneNumbers, notification);
 }

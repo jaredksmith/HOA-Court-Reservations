@@ -70,6 +70,13 @@ A mobile-first Progressive Web App (PWA) for managing HOA pickleball court booki
 
 Create a `.env` file with the following variables:
 
+```bash
+# Quick setup
+npm run setup:env
+
+# Then edit .env with your actual credentials
+```
+
 ```env
 # Supabase Configuration
 SUPABASE_URL=your_supabase_project_url
@@ -83,7 +90,19 @@ VAPID_EMAIL=your_email@example.com
 
 # Application Configuration
 PUBLIC_APP_URL=http://localhost:5173
+NODE_ENV=development
 ```
+
+### Database Setup
+
+1. **Create Supabase Project**: Go to [Supabase](https://app.supabase.com) and create a new project
+2. **Run Database Setup**: Copy and run the SQL from `database-setup.sql` in your Supabase SQL editor
+3. **Test Connection**:
+   ```bash
+   npm run test:db
+   ```
+
+For detailed setup instructions, see [SUPABASE_SETUP_GUIDE.md](./SUPABASE_SETUP_GUIDE.md)
 
 ## Project Structure
 
@@ -143,6 +162,9 @@ Refer to the database schema in the documentation for detailed table structures.
 
 ### Vercel Deployment
 
+For detailed deployment instructions, see [VERCEL_DEPLOYMENT_GUIDE.md](./VERCEL_DEPLOYMENT_GUIDE.md)
+
+Quick steps:
 1. Connect your GitHub repository to Vercel
 2. Set environment variables in Vercel dashboard
 3. Deploy automatically on push to main branch
@@ -150,6 +172,33 @@ Refer to the database schema in the documentation for detailed table structures.
 ### Environment Configuration
 
 Make sure to set all required environment variables in your deployment platform.
+
+## Development Scripts
+
+```bash
+# Setup environment file
+npm run setup:env
+
+# Test database connection
+npm run test:db
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Run linting and formatting
+npm run lint
+npm run format
+```
+
+## Documentation
+
+- [SUPABASE_SETUP_GUIDE.md](./SUPABASE_SETUP_GUIDE.md) - Complete database setup guide
+- [VERCEL_DEPLOYMENT_GUIDE.md](./VERCEL_DEPLOYMENT_GUIDE.md) - Production deployment guide
+- [database-setup.sql](./database-setup.sql) - SQL script for database schema
+- [SETUP_COMPLETE.md](./SETUP_COMPLETE.md) - Development setup verification
 
 ## Contributing
 
