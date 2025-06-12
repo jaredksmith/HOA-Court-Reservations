@@ -1,0 +1,31 @@
+/src
+  /lib
+    /components
+      /auth
+      /booking
+      /admin
+      /ui
+    /server
+      /db
+      /auth
+      /booking
+      /admin
+      /push
+    /stores
+    /types
+    /utils
+  /routes
+    /api
+    /admin
+    /auth
+    /booking
+    /profile
+  /params
+  app.html
+  service-worker.js
+  hooks.server.js
+  hooks.client.js
+/static
+  /images
+  /icons
+  manifest.json
