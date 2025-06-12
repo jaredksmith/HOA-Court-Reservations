@@ -1,9 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import type { User, Profile, Booking, BookingParticipant, PushSubscription } from '$lib/types';
 
 // Initialize Supabase client
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = createClient(
+  env.SUPABASE_URL || 'http://localhost:54321',
+  env.SUPABASE_ANON_KEY || 'mock-key'
+);
+
+// Export the client for use in other modules
+export { supabase };
 
 // User functions
 export async function createUser(email: string, password: string) {
@@ -11,20 +17,32 @@ export async function createUser(email: string, password: string) {
     email,
     password
   });
-  
+
   if (authError) throw authError;
   if (!data.user) throw new Error('Failed to create user');
-  
-  return data.user as User;
+
+  // Convert Supabase user to our User type
+  return {
+    id: data.user.id,
+    email: data.user.email || '',
+    household_id: '', // Will be set when profile is created
+    created_at: data.user.created_at
+  } as User;
 }
 
 export async function getUserBySessionId(sessionId: string) {
   const { data, error } = await supabase.auth.getUser(sessionId);
-  
+
   if (error) throw error;
   if (!data.user) return null;
-  
-  return data.user as User;
+
+  // Convert Supabase user to our User type
+  return {
+    id: data.user.id,
+    email: data.user.email || '',
+    household_id: '', // Will be populated from profile
+    created_at: data.user.created_at
+  } as User;
 }
 
 // Profile functions
@@ -128,7 +146,22 @@ export async function savePushSubscription(subscription: Omit<PushSubscription, 
     })
     .select()
     .single();
-  
+
   if (error) throw error;
   return data as PushSubscription;
 }
+
+// Export all functions as a db object for backward compatibility
+export const db = {
+  createUser,
+  getUserBySessionId,
+  createProfile,
+  getProfileByUserId,
+  resetAllUserHours,
+  createBooking,
+  getBookingById,
+  updateBookingStatus,
+  addBookingParticipants,
+  updateParticipantStatus,
+  savePushSubscription
+};

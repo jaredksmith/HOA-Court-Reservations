@@ -10,10 +10,11 @@
 	$: props = href ? { href } : { type, disabled: disabled || loading };
 </script>
 
-<svelte:element 
-	this={tag} 
-	class="btn btn-{variant} btn-{size}" 
+<svelte:element
+	this={tag}
+	class="btn btn-{variant} btn-{size}"
 	class:loading
+	role={href ? 'link' : 'button'}
 	{...props}
 	on:click
 >

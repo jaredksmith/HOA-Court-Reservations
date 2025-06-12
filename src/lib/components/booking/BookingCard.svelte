@@ -53,7 +53,7 @@
 			<span>{booking.total_players} players ({booking.guest_count} guests)</span>
 		</div>
 		
-		{#if booking.status === 'pending'}
+		{#if booking.status === 'pending' && booking.expires_at}
 			<div class="expires">
 				Expires: {formatDate(booking.expires_at)}
 			</div>

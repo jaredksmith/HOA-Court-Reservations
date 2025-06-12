@@ -9,6 +9,7 @@ export type Profile = {
   id: string;
   user_id: string;
   full_name: string;
+  household_id: string;
   prime_hours: number;
   standard_hours: number;
   is_admin: boolean;
