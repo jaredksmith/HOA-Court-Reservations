@@ -12,7 +12,7 @@ export const GET: RequestHandler = async ({ locals }) => {
     }
 
     // Get user with HOA context
-    const userWithHOA = await getUserWithHOA(locals.user.id);
+    const userWithHOA = await getUserWithHOA(locals.user.id, locals.user);
     if (!userWithHOA) {
       throw error(401, 'User not found');
     }

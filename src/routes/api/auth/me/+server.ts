@@ -9,7 +9,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 
 	try {
 		// Get user with HOA context
-		const userWithHOA = await getUserWithHOA(locals.user.id);
+		const userWithHOA = await getUserWithHOA(locals.user.id, locals.user);
 
 		if (!userWithHOA) {
 			return json({ error: 'User profile not found' }, { status: 404 });

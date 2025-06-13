@@ -64,7 +64,7 @@ export async function createUserWithInvitationCode(
   }
 }
 
-export async function getUserWithHOA(userId: string): Promise<{ user: User; profile: Profile; hoa: HOA } | null> {
+export async function getUserWithHOA(userId: string, userFromSession?: User): Promise<{ user: User; profile: Profile; hoa: HOA } | null> {
   try {
     console.log('🔍 Getting user with HOA for user ID:', userId);
 
@@ -84,10 +84,10 @@ export async function getUserWithHOA(userId: string): Promise<{ user: User; prof
 
     console.log('✅ HOA found:', hoa.name);
 
-    // Create user object from the userId (we already have it from session validation)
-    const user: User = {
+    // Use the user from session if provided, otherwise create a basic user object
+    const user: User = userFromSession || {
       id: userId,
-      email: profile.full_name, // We'll get the actual email from the profile or use a placeholder
+      email: `user-${userId}@example.com`, // Fallback email
       household_id: profile.household_id,
       created_at: profile.created_at
     };

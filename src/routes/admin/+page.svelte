@@ -35,11 +35,11 @@
   
   $: quickActions = [
     {
-      title: 'Manage Members',
-      description: 'View and manage HOA members',
-      href: '/admin/members',
+      title: 'Manage Users',
+      description: 'View and manage HOA users',
+      href: '/admin/users',
       icon: '👥',
-      show: hasPermission(profile, 'manage_hoa_users')
+      show: hasPermission(profile, 'view_hoa_members')
     },
     {
       title: 'View Bookings',

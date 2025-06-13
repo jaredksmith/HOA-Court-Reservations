@@ -11,7 +11,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
   }
 
   // Get user with HOA context
-  const userWithHOA = await getUserWithHOA(locals.user.id);
+  const userWithHOA = await getUserWithHOA(locals.user.id, locals.user);
   if (!userWithHOA) {
     throw redirect(302, '/auth/login');
   }

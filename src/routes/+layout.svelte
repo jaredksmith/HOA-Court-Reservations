@@ -12,6 +12,7 @@
 		if (data.auth.user && data.auth.profile) {
 			authActions.setUser(data.auth.user, data.auth.profile);
 		} else if (data.auth.initialized) {
+			// User is not authenticated, but auth is initialized
 			authActions.initialize();
 		}
 	}

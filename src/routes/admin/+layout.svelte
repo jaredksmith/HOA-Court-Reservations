@@ -30,10 +30,10 @@
       show: true
     },
     {
-      href: '/admin/members',
-      label: 'Members',
+      href: '/admin/users',
+      label: 'Users',
       icon: '👥',
-      show: hasPermission(profile, 'manage_hoa_users')
+      show: hasPermission(profile, 'view_hoa_members')
     },
     {
       href: '/admin/bookings',

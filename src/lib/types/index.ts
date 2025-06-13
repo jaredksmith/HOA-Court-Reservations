@@ -170,12 +170,37 @@ export type AuthContext = {
   initialized: boolean;
 };
 
-// Permission helpers
+// Permission helpers - Comprehensive RBAC permissions
 export type Permission =
-  | 'manage_hoas'           // Super admin only
-  | 'manage_hoa_settings'   // HOA admin and super admin
-  | 'manage_hoa_users'      // HOA admin and super admin
-  | 'view_hoa_reports'      // HOA admin and super admin
-  | 'create_bookings'       // All authenticated users
-  | 'manage_own_bookings'   // All authenticated users
-  | 'manage_all_bookings';  // HOA admin and super admin
+  // System-wide permissions (Super Admin only)
+  | 'manage_hoas'           // Create, update, delete HOAs
+  | 'view_all_hoas'         // View all HOAs in system
+  | 'manage_system_users'   // Manage users across all HOAs
+  | 'view_system_reports'   // View system-wide analytics
+  | 'manage_system_settings' // Configure system-wide settings
+
+  // HOA-level permissions (HOA Admin and Super Admin)
+  | 'manage_hoa_settings'   // Update HOA configuration
+  | 'manage_hoa_users'      // Invite, activate, deactivate users
+  | 'assign_user_roles'     // Change user roles within HOA
+  | 'view_hoa_reports'      // View HOA analytics and reports
+  | 'manage_hoa_courts'     // Configure court settings
+  | 'manage_hoa_hours'      // Manage user hour allocations
+  | 'reset_user_hours'      // Reset user hour allocations
+
+  // Booking permissions
+  | 'create_bookings'       // Create new bookings
+  | 'manage_own_bookings'   // Edit/cancel own bookings
+  | 'manage_all_bookings'   // Edit/cancel any booking in HOA
+  | 'view_all_bookings'     // View all bookings in HOA
+  | 'approve_bookings'      // Approve pending bookings
+
+  // User management permissions
+  | 'view_hoa_members'      // View member list
+  | 'invite_members'        // Send member invitations
+  | 'deactivate_members'    // Deactivate member accounts
+  | 'view_member_details'   // View detailed member information
+
+  // Profile permissions
+  | 'manage_own_profile'    // Edit own profile
+  | 'view_own_profile'      // View own profile;

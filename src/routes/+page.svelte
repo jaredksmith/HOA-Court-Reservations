@@ -1,18 +1,21 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { authStore } from '$lib/stores/auth';
 	import { bookingStore, bookingActions } from '$lib/stores/booking';
 	import BookingCard from '$lib/components/booking/BookingCard.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
-	
+	import type { PageData } from './$types';
+
+	export let data: PageData;
+
 	let loading = true;
-	
-	// Note: Server-side authentication check now handles redirects
-	// No need for client-side redirect since +page.server.ts handles it
+
+	// Server-side authentication check handles redirects
+	// If we reach this component, user is authenticated with a profile
+	$: auth = data.auth;
 
 	onMount(async () => {
 		// Only load bookings if user is authenticated
-		if ($authStore.user) {
+		if (auth?.user) {
 			await loadBookings();
 		}
 		loading = false;
@@ -28,11 +31,6 @@
 		} catch (error) {
 			console.error('Failed to load bookings:', error);
 		}
-	}
-
-	// Load bookings when user becomes available
-	$: if ($authStore.user && $authStore.initialized) {
-		loadBookings();
 	}
 	
 	async function handleAcceptBooking(bookingId: string) {
@@ -68,8 +66,8 @@
 		b.status === 'confirmed' && new Date(b.start_time) > new Date()
 	);
 	
-	$: pendingInvitations = $bookingStore.pendingBookings.filter(b => 
-		b.organizer_id !== $authStore.user?.id
+	$: pendingInvitations = $bookingStore.pendingBookings.filter(b =>
+		b.organizer_id !== auth?.user?.id
 	);
 </script>
 
@@ -77,22 +75,22 @@
 	<title>Dashboard - HOA Court Reservations</title>
 </svelte:head>
 
-{#if !$authStore.user}
+{#if !auth || !auth.user}
 	<div class="loading">Loading...</div>
 {:else}
 	<div class="dashboard">
 		<header class="dashboard-header">
-			<h1>Welcome back, {$authStore.profile?.full_name || $authStore.user.email}!</h1>
-			
-			{#if $authStore.profile}
+			<h1>Welcome back, {auth.profile?.full_name || auth.user.email}!</h1>
+
+			{#if auth.profile}
 				<div class="hour-balance">
 					<div class="balance-item">
 						<span class="label">Prime Hours</span>
-						<span class="value">{$authStore.profile.prime_hours}</span>
+						<span class="value">{auth.profile.prime_hours}</span>
 					</div>
 					<div class="balance-item">
 						<span class="label">Standard Hours</span>
-						<span class="value">{$authStore.profile.standard_hours}</span>
+						<span class="value">{auth.profile.standard_hours}</span>
 					</div>
 				</div>
 			{/if}

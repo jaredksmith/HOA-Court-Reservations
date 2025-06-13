@@ -12,7 +12,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
   }
 
   // Get user with HOA context
-  const userWithHOA = await getUserWithHOA(locals.user.id);
+  const userWithHOA = await getUserWithHOA(locals.user.id, locals.user);
   
   if (!userWithHOA) {
     throw redirect(303, '/auth/login');

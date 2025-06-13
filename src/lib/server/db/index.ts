@@ -552,6 +552,44 @@ export async function getHOAStats(hoaId: string) {
   };
 }
 
+// Additional database functions for RBAC
+async function updateProfile(profileId: string, updateData: any) {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('profiles')
+      .update(updateData)
+      .eq('id', profileId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.error('Error updating profile:', err);
+    throw err;
+  }
+}
+
+async function getBookingsByUserId(userId: string) {
+  try {
+    // Get bookings where user is the organizer
+    const { data, error } = await supabaseAdmin
+      .from('bookings')
+      .select(`
+        *,
+        hoa:hoas(*)
+      `)
+      .eq('organizer_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error('Error fetching user bookings:', err);
+    throw err;
+  }
+}
+
 // Export all functions as a db object for backward compatibility
 export const db = {
   // User operations (uses anon key, respects RLS)
@@ -583,5 +621,9 @@ export const db = {
   resetHOAUserHours,
   getAllProfiles,
   getAllBookings,
-  deleteExpiredBookings
+  deleteExpiredBookings,
+
+  // RBAC operations
+  updateProfile,
+  getBookingsByUserId
 };
