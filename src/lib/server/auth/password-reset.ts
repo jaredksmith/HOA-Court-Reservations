@@ -40,7 +40,7 @@ export async function createPasswordResetToken(
     const { error: tokenError } = await supabaseAdmin.rpc('create_password_reset_token', {
       user_email: email,
       token_value: token,
-      expiry_hours: 1
+      expiry_hours: 2 // Extended to 2 hours for testing - change back to 1 for production
     });
 
     if (tokenError) {
@@ -75,36 +75,48 @@ export async function createPasswordResetToken(
   }
 }
 
-// Validate a password reset token
+// Validate a password reset token (for page load - doesn't mark as used)
 export async function validatePasswordResetToken(
   token: string
-): Promise<{ 
-  success: boolean; 
-  userId?: string; 
-  email?: string; 
-  error?: string 
+): Promise<{
+  success: boolean;
+  userId?: string;
+  email?: string;
+  error?: string
 }> {
   try {
-    // Validate token using the database function
-    const { data, error } = await supabaseAdmin.rpc('validate_password_reset_token', {
+    console.log('🔍 Checking password reset token (page load):', token.substring(0, 10) + '...');
+
+    // Check token using the database function (doesn't mark as used)
+    const { data, error } = await supabaseAdmin.rpc('check_password_reset_token', {
       token_value: token
     });
 
     if (error) {
-      console.error('Error validating password reset token:', error);
-      return { success: false, error: 'Invalid token' };
+      console.error('❌ Database error checking password reset token:', error);
+      return { success: false, error: 'Database error during token validation' };
     }
 
+    console.log('🔍 Token check result:', { dataLength: data?.length, data });
+
     if (!data || data.length === 0) {
+      console.log('❌ Token not found in database');
       return { success: false, error: 'Token not found' };
     }
 
     const tokenData = data[0];
+    console.log('🔍 Token data:', {
+      userId: tokenData.user_id,
+      email: tokenData.email,
+      isValid: tokenData.is_valid
+    });
 
     if (!tokenData.is_valid) {
+      console.log('❌ Token is invalid (expired or used)');
       return { success: false, error: 'Token is expired or already used' };
     }
 
+    console.log('✅ Token check successful (not consumed)');
     return {
       success: true,
       userId: tokenData.user_id,
@@ -112,10 +124,67 @@ export async function validatePasswordResetToken(
     };
 
   } catch (error) {
-    console.error('❌ Error validating password reset token:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+    console.error('❌ Exception during password reset token validation:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
+// Consume a password reset token (for actual password reset - marks as used)
+export async function consumePasswordResetToken(
+  token: string
+): Promise<{
+  success: boolean;
+  userId?: string;
+  email?: string;
+  error?: string
+}> {
+  try {
+    console.log('🔐 Consuming password reset token:', token.substring(0, 10) + '...');
+
+    // Consume token using the database function (marks as used)
+    const { data, error } = await supabaseAdmin.rpc('consume_password_reset_token', {
+      token_value: token
+    });
+
+    if (error) {
+      console.error('❌ Database error consuming password reset token:', error);
+      return { success: false, error: 'Database error during token consumption' };
+    }
+
+    console.log('🔍 Token consumption result:', { dataLength: data?.length, data });
+
+    if (!data || data.length === 0) {
+      console.log('❌ Token not found in database');
+      return { success: false, error: 'Token not found' };
+    }
+
+    const tokenData = data[0];
+    console.log('🔍 Token data:', {
+      userId: tokenData.user_id,
+      email: tokenData.email,
+      isValid: tokenData.is_valid
+    });
+
+    if (!tokenData.is_valid) {
+      console.log('❌ Token is invalid (expired or used)');
+      return { success: false, error: 'Token is expired or already used' };
+    }
+
+    console.log('✅ Token consumed successfully');
+    return {
+      success: true,
+      userId: tokenData.user_id,
+      email: tokenData.email
+    };
+
+  } catch (error) {
+    console.error('❌ Exception during password reset token consumption:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 }

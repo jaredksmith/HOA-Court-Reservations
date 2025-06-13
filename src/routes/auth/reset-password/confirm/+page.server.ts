@@ -1,5 +1,5 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { validatePasswordResetToken, updateUserPassword } from '$lib/server/auth/password-reset';
+import { validatePasswordResetToken, consumePasswordResetToken, updateUserPassword } from '$lib/server/auth/password-reset';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ url }) => {
@@ -59,37 +59,27 @@ export const actions: Actions = {
       return fail(400, { error: 'Invalid reset token' });
     }
 
-    try {
-      console.log('🔐 Confirming password reset');
+    console.log('🔐 Confirming password reset');
 
-      // Validate the token again (it gets marked as used)
-      const tokenValidation = await validatePasswordResetToken(token);
+    // Consume the token (marks it as used)
+    const tokenValidation = await consumePasswordResetToken(token);
 
-      if (!tokenValidation.success || !tokenValidation.userId) {
-        console.error('❌ Invalid token during password reset:', tokenValidation.error);
-        return fail(400, { error: 'Invalid or expired reset link' });
-      }
-
-      // Update the user's password
-      const updateResult = await updateUserPassword(tokenValidation.userId, password);
-
-      if (!updateResult.success) {
-        console.error('❌ Password update error:', updateResult.error);
-        return fail(500, { error: 'Failed to update password' });
-      }
-
-      console.log('✅ Password reset successful for user:', tokenValidation.userId);
-
-      // Redirect to login with success message
-      throw redirect(303, '/auth/login?reset=success');
-
-    } catch (err) {
-      // Check if it's a redirect response (which is expected)
-      if (err instanceof Response && err.status >= 300 && err.status < 400) {
-        throw err;
-      }
-      console.error('❌ Unexpected password reset error:', err);
-      return fail(500, { error: 'An unexpected error occurred' });
+    if (!tokenValidation.success || !tokenValidation.userId) {
+      console.error('❌ Invalid token during password reset:', tokenValidation.error);
+      return fail(400, { error: 'Invalid or expired reset link' });
     }
+
+    // Update the user's password
+    const updateResult = await updateUserPassword(tokenValidation.userId, password);
+
+    if (!updateResult.success) {
+      console.error('❌ Password update error:', updateResult.error);
+      return fail(500, { error: 'Failed to update password' });
+    }
+
+    console.log('✅ Password reset successful for user:', tokenValidation.userId);
+
+    // Redirect to login with success message
+    throw redirect(303, '/auth/login?reset=success');
   }
 };

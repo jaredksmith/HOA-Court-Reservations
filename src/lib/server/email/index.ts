@@ -182,8 +182,12 @@ export async function sendPasswordResetEmail(
 
     const template = emailTemplates.passwordReset(resetLink, userName || '');
 
+    // TODO: PRODUCTION - Update to use verified custom domain
+    // Current: Using Resend's default domain for development/testing
+    // Production: Change to 'HOA Court Reservations <noreply@yourdomain.com>'
+    // See: https://resend.com/domains for domain verification
     const { data, error } = await resend.emails.send({
-      from: 'HOA Court Reservations <noreply@hoacourtreservations.com>',
+      from: 'HOA Court Reservations <onboarding@resend.dev>',
       to: [to],
       subject: template.subject,
       html: template.html,

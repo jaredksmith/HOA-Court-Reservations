@@ -60,9 +60,14 @@ Set the following environment variables in your Vercel dashboard:
 ## Email Configuration Notes
 
 ### Resend Setup
-- **Domain**: You'll need to configure a domain in Resend for sending emails
-- **From Address**: Update the `from` field in `src/lib/server/email/index.ts` to match your verified domain
-- **Default**: Currently set to `noreply@hoacourtreservations.com` (update as needed)
+- **Current Configuration**: Using Resend's default domain (`onboarding@resend.dev`) for development
+- **Production**: You'll need to configure and verify a custom domain in Resend
+- **From Address**: Currently set to `HOA Court Reservations <onboarding@resend.dev>`
+- **Production Update Required**: Change to your verified domain before production deployment
+
+### ⚠️ Development vs Production
+- **Development**: Uses `onboarding@resend.dev` (no domain verification needed)
+- **Production**: Must use verified custom domain (e.g., `noreply@yourdomain.com`)
 
 ### Email Template Customization
 The password reset email template can be customized in:

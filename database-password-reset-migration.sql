@@ -82,31 +82,31 @@ DECLARE
   token_record RECORD;
 BEGIN
   -- Find the token
-  SELECT prt.user_id, prt.expires_at, prt.used_at, u.email
+  SELECT prt.user_id, prt.expires_at, prt.used_at, u.email::TEXT
   INTO token_record
   FROM password_reset_tokens prt
   JOIN auth.users u ON u.id = prt.user_id
   WHERE prt.token = token_value;
-  
+
   -- Check if token exists and is valid
   IF token_record IS NULL THEN
     RETURN QUERY SELECT NULL::UUID, NULL::TEXT, FALSE;
     RETURN;
   END IF;
-  
+
   -- Check if token is expired or already used
   IF token_record.expires_at < NOW() OR token_record.used_at IS NOT NULL THEN
-    RETURN QUERY SELECT token_record.user_id, token_record.email, FALSE;
+    RETURN QUERY SELECT token_record.user_id, token_record.email::TEXT, FALSE;
     RETURN;
   END IF;
-  
+
   -- Mark token as used
   UPDATE password_reset_tokens
   SET used_at = NOW()
   WHERE token = token_value;
-  
+
   -- Return valid token info
-  RETURN QUERY SELECT token_record.user_id, token_record.email, TRUE;
+  RETURN QUERY SELECT token_record.user_id, token_record.email::TEXT, TRUE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
