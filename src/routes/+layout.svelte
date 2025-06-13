@@ -1,25 +1,21 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+
 	import { authStore, authActions } from '$lib/stores/auth';
 	import { page } from '$app/stores';
-	
-	// Initialize auth state on app load
-	onMount(async () => {
-		try {
-			// Check if user is already authenticated
-			const response = await fetch('/api/auth/me');
-			if (response.ok) {
-				const { user, profile } = await response.json();
-				authActions.setUser(user, profile);
-			} else {
-				authActions.initialize();
-			}
-		} catch (error) {
-			console.error('Failed to initialize auth:', error);
+	import type { LayoutData } from './$types';
+
+	export let data: LayoutData;
+
+	// Initialize auth state from server data
+	$: if (data.auth) {
+		console.log('🔄 Updating auth store from server data:', data.auth);
+		if (data.auth.user && data.auth.profile) {
+			authActions.setUser(data.auth.user, data.auth.profile);
+		} else if (data.auth.initialized) {
 			authActions.initialize();
 		}
-	});
-	
+	}
+
 	$: isAuthPage = $page.route.id?.startsWith('/auth');
 </script>
 
@@ -41,7 +37,7 @@
 					<a href="/profile" class:active={$page.route.id?.startsWith('/profile')}>
 						Profile
 					</a>
-					{#if $authStore.profile?.is_admin}
+					{#if $authStore.profile?.role === 'super_admin' || $authStore.profile?.role === 'hoa_admin'}
 						<a href="/admin" class:active={$page.route.id?.startsWith('/admin')}>
 							Admin
 						</a>

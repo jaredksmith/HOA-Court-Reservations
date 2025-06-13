@@ -219,17 +219,12 @@ CREATE POLICY "HOA admins can manage profiles in their HOA" ON profiles
     (hoa_id = get_user_hoa_id(auth.uid()) OR is_super_admin(auth.uid()))
   );
 
--- Bookings Policies
+-- Bookings Policies (Fixed to avoid circular dependencies)
 CREATE POLICY "Users can view bookings in their HOA" ON bookings
   FOR SELECT USING (
     auth.role() = 'authenticated' AND
     hoa_id = get_user_hoa_id(auth.uid()) AND
-    (auth.uid() = organizer_id OR
-     EXISTS (
-       SELECT 1 FROM booking_participants
-       WHERE booking_id = bookings.id AND user_id = auth.uid()
-     ) OR
-     is_hoa_admin(auth.uid()))
+    (auth.uid() = organizer_id OR is_hoa_admin(auth.uid()))
   );
 
 CREATE POLICY "Users can create bookings in their HOA" ON bookings
@@ -250,29 +245,21 @@ CREATE POLICY "HOA admins can manage bookings in their HOA" ON bookings
     (hoa_id = get_user_hoa_id(auth.uid()) OR is_super_admin(auth.uid()))
   );
 
--- Booking Participants Policies
-CREATE POLICY "Users can view participants in their HOA bookings" ON booking_participants
+-- Booking Participants Policies (Fixed to avoid circular dependencies)
+CREATE POLICY "Users can view participants in their HOA" ON booking_participants
   FOR SELECT USING (
     auth.role() = 'authenticated' AND
-    (auth.uid() = user_id OR
-     EXISTS (
-       SELECT 1 FROM bookings b
-       WHERE b.id = booking_id AND
-             b.organizer_id = auth.uid() AND
-             b.hoa_id = get_user_hoa_id(auth.uid())
-     ) OR
-     is_hoa_admin(auth.uid()))
+    (auth.uid() = user_id OR is_hoa_admin(auth.uid()))
   );
 
-CREATE POLICY "Organizers can add participants from their HOA" ON booking_participants
+CREATE POLICY "HOA members can add participants from their HOA" ON booking_participants
   FOR INSERT WITH CHECK (
+    auth.role() = 'authenticated' AND
     EXISTS (
-      SELECT 1 FROM bookings b
-      JOIN profiles p ON p.user_id = booking_participants.user_id
-      WHERE b.id = booking_id AND
-            b.organizer_id = auth.uid() AND
-            b.hoa_id = get_user_hoa_id(auth.uid()) AND
-            p.hoa_id = b.hoa_id
+      SELECT 1 FROM profiles p
+      WHERE p.user_id = booking_participants.user_id
+      AND p.hoa_id = get_user_hoa_id(auth.uid())
+      AND p.is_active = TRUE
     )
   );
 

@@ -176,19 +176,32 @@ export async function createUser(email: string, password: string) {
   } as User;
 }
 
-export async function getUserBySessionId(sessionId: string) {
-  const { data, error } = await supabase.auth.getUser(sessionId);
+export async function getUserBySessionId(accessToken: string) {
+  try {
+    // Use the admin client to verify the JWT token
+    const { data, error } = await supabaseAdmin.auth.getUser(accessToken);
 
-  if (error) throw error;
-  if (!data.user) return null;
+    if (error) {
+      console.log('⚠️  Token validation failed:', error.message);
+      return null;
+    }
 
-  // Convert Supabase user to our User type
-  return {
-    id: data.user.id,
-    email: data.user.email || '',
-    household_id: '', // Will be populated from profile
-    created_at: data.user.created_at
-  } as User;
+    if (!data.user) {
+      console.log('⚠️  No user found for token');
+      return null;
+    }
+
+    // Convert Supabase user to our User type
+    return {
+      id: data.user.id,
+      email: data.user.email || '',
+      household_id: '', // Will be populated from profile
+      created_at: data.user.created_at
+    } as User;
+  } catch (err) {
+    console.error('❌ Error validating token:', err);
+    return null;
+  }
 }
 
 // Profile functions
@@ -308,40 +321,45 @@ export async function createBooking(booking: Omit<Booking, 'id' | 'created_at'>)
 }
 
 export async function getBookingById(id: string): Promise<Booking | null> {
-  const { data, error } = await supabase
+  // Get booking data first
+  const { data: booking, error: bookingError } = await supabase
     .from('bookings')
-    .select(`
-      *,
-      hoa:hoas(*),
-      organizer:profiles!organizer_id(*),
-      participants:booking_participants(
-        *,
-        user:profiles!user_id(*)
-      )
-    `)
+    .select('*')
     .eq('id', id)
     .single();
 
-  if (error) {
-    if (error.code === 'PGRST116') return null;
-    throw error;
+  if (bookingError) {
+    if (bookingError.code === 'PGRST116') return null;
+    throw bookingError;
   }
-  return data as Booking;
+
+  // Get related data separately to avoid PostgREST join issues
+  const [hoaResult, organizerResult, participantsResult] = await Promise.all([
+    supabase.from('hoas').select('*').eq('id', booking.hoa_id).single(),
+    supabase.from('profiles').select('*').eq('user_id', booking.organizer_id).single(),
+    supabase.from('booking_participants').select(`
+      *,
+      user:profiles!user_id(*)
+    `).eq('booking_id', booking.id)
+  ]);
+
+  // Combine the data
+  const result = {
+    ...booking,
+    hoa: hoaResult.data,
+    organizer: organizerResult.data,
+    participants: participantsResult.data || []
+  };
+
+  return result as Booking;
 }
 
 // Get bookings by HOA ID
 export async function getBookingsByHOAId(hoaId: string, limit?: number): Promise<Booking[]> {
+  // Get bookings first
   let query = supabase
     .from('bookings')
-    .select(`
-      *,
-      hoa:hoas(*),
-      organizer:profiles!organizer_id(*),
-      participants:booking_participants(
-        *,
-        user:profiles!user_id(*)
-      )
-    `)
+    .select('*')
     .eq('hoa_id', hoaId)
     .order('start_time', { ascending: false });
 
@@ -349,9 +367,38 @@ export async function getBookingsByHOAId(hoaId: string, limit?: number): Promise
     query = query.limit(limit);
   }
 
-  const { data, error } = await query;
+  const { data: bookings, error } = await query;
   if (error) throw error;
-  return data as Booking[];
+
+  if (!bookings || bookings.length === 0) {
+    return [];
+  }
+
+  // Get related data for all bookings
+  const organizerIds = [...new Set(bookings.map(b => b.organizer_id))];
+
+  const [hoaResult, organizersResult] = await Promise.all([
+    supabase.from('hoas').select('*').eq('id', hoaId).single(),
+    supabase.from('profiles').select('*').in('user_id', organizerIds)
+  ]);
+
+  // Create a map of organizers for quick lookup
+  const organizersMap = new Map();
+  if (organizersResult.data) {
+    organizersResult.data.forEach(org => {
+      organizersMap.set(org.user_id, org);
+    });
+  }
+
+  // Combine the data
+  const result = bookings.map(booking => ({
+    ...booking,
+    hoa: hoaResult.data,
+    organizer: organizersMap.get(booking.organizer_id),
+    participants: [] // We'll load participants separately when needed
+  }));
+
+  return result as Booking[];
 }
 
 export async function updateBookingStatus(id: string, status: 'pending' | 'confirmed' | 'cancelled') {
@@ -418,21 +465,48 @@ export async function getAllProfiles(): Promise<Profile[]> {
 }
 
 export async function getAllBookings(): Promise<Booking[]> {
-  const { data, error } = await supabaseAdmin
+  // Get all bookings first
+  const { data: bookings, error } = await supabaseAdmin
     .from('bookings')
-    .select(`
-      *,
-      hoa:hoas(*),
-      organizer:profiles!organizer_id(*),
-      participants:booking_participants(
-        *,
-        user:profiles!user_id(*)
-      )
-    `)
+    .select('*')
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data as Booking[];
+
+  if (!bookings || bookings.length === 0) {
+    return [];
+  }
+
+  // Get related data
+  const hoaIds = [...new Set(bookings.map(b => b.hoa_id))];
+  const organizerIds = [...new Set(bookings.map(b => b.organizer_id))];
+
+  const [hoasResult, organizersResult] = await Promise.all([
+    supabaseAdmin.from('hoas').select('*').in('id', hoaIds),
+    supabaseAdmin.from('profiles').select('*').in('user_id', organizerIds)
+  ]);
+
+  // Create maps for quick lookup
+  const hoasMap = new Map();
+  const organizersMap = new Map();
+
+  if (hoasResult.data) {
+    hoasResult.data.forEach(hoa => hoasMap.set(hoa.id, hoa));
+  }
+
+  if (organizersResult.data) {
+    organizersResult.data.forEach(org => organizersMap.set(org.user_id, org));
+  }
+
+  // Combine the data
+  const result = bookings.map(booking => ({
+    ...booking,
+    hoa: hoasMap.get(booking.hoa_id),
+    organizer: organizersMap.get(booking.organizer_id),
+    participants: [] // Load separately when needed
+  }));
+
+  return result as Booking[];
 }
 
 export async function deleteExpiredBookings(): Promise<void> {

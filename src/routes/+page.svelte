@@ -8,14 +8,21 @@
 	
 	let loading = true;
 	
+	// Reactive statement to handle auth state changes
+	$: if ($authStore.initialized && !$authStore.user) {
+		console.log('🔄 No user found, redirecting to login');
+		goto('/auth/login');
+	}
+
 	onMount(async () => {
-		// Redirect to auth if not logged in
-		if (!$authStore.user) {
-			goto('/auth/login');
-			return;
+		// Only load bookings if user is authenticated
+		if ($authStore.user) {
+			await loadBookings();
 		}
-		
-		// Load user's bookings
+		loading = false;
+	});
+
+	async function loadBookings() {
 		try {
 			const response = await fetch('/api/bookings/my');
 			if (response.ok) {
@@ -24,10 +31,13 @@
 			}
 		} catch (error) {
 			console.error('Failed to load bookings:', error);
-		} finally {
-			loading = false;
 		}
-	});
+	}
+
+	// Load bookings when user becomes available
+	$: if ($authStore.user && $authStore.initialized) {
+		loadBookings();
+	}
 	
 	async function handleAcceptBooking(bookingId: string) {
 		try {
