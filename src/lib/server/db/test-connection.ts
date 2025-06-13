@@ -98,7 +98,7 @@ export async function runDatabaseTests() {
   if (!allGood) {
     console.log('\n💡 Next Steps:');
     console.log('1. Check your .env file has correct Supabase credentials');
-    console.log('2. Run the database-setup.sql script in your Supabase SQL editor');
+    console.log('2. Run the database/database-setup.sql script in your Supabase SQL editor');
     console.log('3. Verify your Supabase project is active and accessible');
   }
   

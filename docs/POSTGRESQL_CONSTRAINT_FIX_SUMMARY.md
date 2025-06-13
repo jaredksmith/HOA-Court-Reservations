@@ -2,13 +2,13 @@
 
 ## 🔧 **Critical Issue Resolved!**
 
-The PostgreSQL syntax error in `database-setup.sql` has been successfully fixed. The problematic CHECK constraints with subqueries have been replaced with trigger-based validation that maintains the same data integrity requirements.
+The PostgreSQL syntax error in `../database/database-setup.sql` has been successfully fixed. The problematic CHECK constraints with subqueries have been replaced with trigger-based validation that maintains the same data integrity requirements.
 
 ## ❌ **Problem Identified**
 
 ### **Error Details:**
 - **Error**: `ERROR: 0A000: cannot use subquery in check constraint`
-- **Location**: Lines 99 and 130 in `database-setup.sql`
+- **Location**: Lines 99 and 130 in `../database/database-setup.sql`
 - **Cause**: PostgreSQL doesn't allow `EXISTS` clauses or subqueries in CHECK constraints
 
 ### **Problematic Constraints:**
@@ -92,13 +92,13 @@ The new trigger system validates:
 
 ## 🔧 **Files Updated**
 
-### **1. `database-setup.sql`** ✅
+### **1. `../database/database-setup.sql`** ✅
 - **Removed**: Problematic CHECK constraints with subqueries
 - **Added**: Trigger functions for data validation
 - **Added**: Triggers to enforce data integrity
 - **Result**: PostgreSQL-compliant schema with same data integrity
 
-### **2. `database-fix-constraints.sql`** ✅ (New File)
+### **2. `../database/database-fix-constraints.sql`** ✅ (New File)
 - **Purpose**: Migration script for existing installations
 - **Function**: Removes old constraints and adds new triggers
 - **Includes**: Data validation queries to check existing data

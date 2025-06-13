@@ -79,7 +79,7 @@ The password reset email template can be customized in:
 Before using the password reset functionality, run the database migration:
 
 1. Open your Supabase SQL Editor
-2. Run the script from `database-password-reset-migration.sql`
+2. Run the script from `../database/database-password-reset-migration.sql`
 3. This creates the `password_reset_tokens` table and required functions
 
 ## Security Considerations

@@ -56,7 +56,7 @@ All authentication pages now have:
 ### **New Files Created:**
 1. `src/lib/server/email/index.ts` - Resend email service integration
 2. `src/lib/server/auth/password-reset.ts` - Password reset token utilities
-3. `database-password-reset-migration.sql` - Database schema for tokens
+3. `../database/database-password-reset-migration.sql` - Database schema for tokens
 4. `ENVIRONMENT_VARIABLES.md` - Environment configuration documentation
 5. `PASSWORD_MANAGEMENT_IMPLEMENTATION_SUMMARY.md` - This summary
 
@@ -111,7 +111,7 @@ RESEND_API_KEY=your_resend_api_key
 ### **1. Database Setup:**
 ```sql
 -- Run this in your Supabase SQL Editor
--- (Content from database-password-reset-migration.sql)
+-- (Content from ../database/database-password-reset-migration.sql)
 ```
 
 ### **2. Resend Configuration:**

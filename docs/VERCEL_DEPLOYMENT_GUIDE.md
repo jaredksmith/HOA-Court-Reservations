@@ -213,7 +213,7 @@ npm install --save missing-package
 
 **Error**: `Table doesn't exist`
 ```bash
-# Solution: Run database-setup.sql in Supabase SQL editor
+# Solution: Run ../database/database-setup.sql in Supabase SQL editor
 # Check: All tables are created with correct schema
 ```
 

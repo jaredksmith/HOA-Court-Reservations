@@ -132,10 +132,10 @@ src/
 
 ## 📚 Documentation
 
-- `README.md` - Main project documentation
+- `../README.md` - Main project documentation (in project root)
 - `HOA Court Reservations.md` - Product requirements
 - `project-structure.md` - Project structure specification
-- `.env.example` - Environment variables template
+- `../.env.example` - Environment variables template (in project root)
 
 ## ⚠️ Important Notes
 

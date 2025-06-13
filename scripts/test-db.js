@@ -180,7 +180,7 @@ async function runDatabaseTests() {
   if (!allGood) {
     console.log('\n💡 Next Steps:');
     console.log('1. Check your .env file has correct Supabase credentials');
-    console.log('2. Run the database-setup.sql script in your Supabase SQL editor');
+    console.log('2. Run the database/database-setup.sql script in your Supabase SQL editor');
     console.log('3. Verify your Supabase project is active and accessible');
   }
 
@@ -280,7 +280,7 @@ async function main() {
       console.log('\n🔧 Please fix the issues above before proceeding.');
       console.log('\nCommon solutions:');
       console.log('1. Copy .env.example to .env and fill in your Supabase credentials');
-      console.log('2. Run the database-setup.sql script in your Supabase SQL editor');
+      console.log('2. Run the database/database-setup.sql script in your Supabase SQL editor');
       console.log('3. Check that your Supabase project is active');
       process.exit(1);
     }

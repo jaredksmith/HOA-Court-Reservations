@@ -96,13 +96,13 @@ NODE_ENV=development
 ### Database Setup
 
 1. **Create Supabase Project**: Go to [Supabase](https://app.supabase.com) and create a new project
-2. **Run Database Setup**: Copy and run the SQL from `database-setup.sql` in your Supabase SQL editor
+2. **Run Database Setup**: Copy and run the SQL from `database/database-setup.sql` in your Supabase SQL editor
 3. **Test Connection**:
    ```bash
    npm run test:db
    ```
 
-For detailed setup instructions, see [SUPABASE_SETUP_GUIDE.md](./SUPABASE_SETUP_GUIDE.md)
+For detailed setup instructions, see [SUPABASE_SETUP_GUIDE.md](docs/SUPABASE_SETUP_GUIDE.md)
 
 ## Project Structure
 
@@ -162,7 +162,7 @@ Refer to the database schema in the documentation for detailed table structures.
 
 ### Vercel Deployment
 
-For detailed deployment instructions, see [VERCEL_DEPLOYMENT_GUIDE.md](./VERCEL_DEPLOYMENT_GUIDE.md)
+For detailed deployment instructions, see [VERCEL_DEPLOYMENT_GUIDE.md](docs/VERCEL_DEPLOYMENT_GUIDE.md)
 
 Quick steps:
 1. Connect your GitHub repository to Vercel
@@ -195,10 +195,28 @@ npm run format
 
 ## Documentation
 
-- [SUPABASE_SETUP_GUIDE.md](./SUPABASE_SETUP_GUIDE.md) - Complete database setup guide
-- [VERCEL_DEPLOYMENT_GUIDE.md](./VERCEL_DEPLOYMENT_GUIDE.md) - Production deployment guide
-- [database-setup.sql](./database-setup.sql) - SQL script for database schema
-- [SETUP_COMPLETE.md](./SETUP_COMPLETE.md) - Development setup verification
+### Setup and Configuration
+- [SUPABASE_SETUP_GUIDE.md](docs/SUPABASE_SETUP_GUIDE.md) - Complete database setup guide
+- [VERCEL_DEPLOYMENT_GUIDE.md](docs/VERCEL_DEPLOYMENT_GUIDE.md) - Production deployment guide
+- [ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md) - Environment configuration guide
+- [SETUP_COMPLETE.md](docs/SETUP_COMPLETE.md) - Development setup verification
+
+### Feature Documentation
+- [EMAIL_CONFIGURATION.md](docs/EMAIL_CONFIGURATION.md) - Email service setup and configuration
+- [PASSWORD_MANAGEMENT_IMPLEMENTATION_SUMMARY.md](docs/PASSWORD_MANAGEMENT_IMPLEMENTATION_SUMMARY.md) - Password reset system
+- [MULTI_TENANT_HOA_IMPLEMENTATION_SUMMARY.md](docs/MULTI_TENANT_HOA_IMPLEMENTATION_SUMMARY.md) - Multi-tenant architecture
+- [RBAC_SYSTEM.md](docs/RBAC_SYSTEM.md) - Role-based access control documentation
+- [PHONE_NUMBER_INTEGRATION_SUMMARY.md](docs/PHONE_NUMBER_INTEGRATION_SUMMARY.md) - Phone number handling
+
+### Technical Documentation
+- [PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) - Project organization and structure
+- [POSTGRESQL_CONSTRAINT_FIX_SUMMARY.md](docs/POSTGRESQL_CONSTRAINT_FIX_SUMMARY.md) - Database constraint fixes
+- [SVELTE_5_COMPATIBILITY_ASSESSMENT.md](docs/SVELTE_5_COMPATIBILITY_ASSESSMENT.md) - Svelte 5 upgrade notes
+- [SUPABASE_KEYS_REFERENCE.md](docs/SUPABASE_KEYS_REFERENCE.md) - API keys and configuration reference
+
+### Database Scripts
+- [database-setup.sql](database/database-setup.sql) - Main database schema and setup
+- [Database Migration Scripts](database/) - All database migrations and fixes
 
 ## Contributing
 

@@ -196,7 +196,7 @@ New Functions:
 
 1. **Run the updated database setup:**
    ```bash
-   # Copy database-setup.sql to Supabase SQL Editor and run
+   # Copy ../database/database-setup.sql to Supabase SQL Editor and run
    ```
 
 2. **Create your first HOA (as super admin):**

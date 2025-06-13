@@ -243,7 +243,7 @@ Ensure proper Supabase configuration:
 - `SUPABASE_SERVICE_ROLE_KEY` - Service role key (admin operations)
 
 ### Database Setup
-1. Run the main database setup script: `database-setup.sql`
+1. Run the main database setup script: `../database/database-setup.sql`
 2. Verify RLS policies are enabled
 3. Test helper functions work correctly
 4. Validate sample data access
