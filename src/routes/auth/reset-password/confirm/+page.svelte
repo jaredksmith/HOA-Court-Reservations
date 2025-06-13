@@ -1,71 +1,66 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import { onMount } from 'svelte';
-  import { page } from '$app/stores';
   import PasswordInput from '$lib/components/ui/PasswordInput.svelte';
 
+  export let data;
   export let form;
 
   let password = '';
-  let emailInput: HTMLInputElement;
-
-  // Check for success messages from URL params
-  $: resetSuccess = $page.url.searchParams.get('reset') === 'success';
-  $: registrationSuccess = $page.url.searchParams.get('registered') === 'true';
+  let confirmPassword = '';
 
   onMount(() => {
-    // Focus the email input after component mounts
-    if (emailInput) {
-      emailInput.focus();
-    }
+    // Focus will be handled by the PasswordInput component
   });
 </script>
 
+<svelte:head>
+  <title>Set New Password - HOA Court Reservations</title>
+</svelte:head>
+
 <div class="auth-container">
   <div class="auth-card">
-    <h1>Login</h1>
-
-    {#if resetSuccess}
-      <div class="success">
-        Your password has been successfully reset. You can now log in with your new password.
-      </div>
-    {/if}
-
-    {#if registrationSuccess}
-      <div class="success">
-        Registration successful! You can now log in with your credentials.
-      </div>
-    {/if}
+    <h1>Set New Password</h1>
+    <p class="subtitle">Enter your new password below.</p>
 
     {#if form?.error}
       <div class="error">{form.error}</div>
     {/if}
 
     <form method="POST" use:enhance>
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" bind:this={emailInput} required />
-      </div>
+      <!-- Hidden field for reset token -->
+      <input type="hidden" name="token" value={data.token} />
 
       <div class="form-group">
         <PasswordInput
           bind:value={password}
           id="password"
           name="password"
-          label="Password"
+          label="New Password"
           required={true}
-          error={form?.error && form.error.toLowerCase().includes('password') ? form.error : null}
+          autocomplete="new-password"
+          placeholder="Enter your new password"
         />
-        <!-- Hidden input to ensure form submission works -->
-        <input type="hidden" name="password" value={password} />
+        <small>Password must be at least 8 characters long</small>
       </div>
 
-      <button type="submit">Login</button>
+      <div class="form-group">
+        <PasswordInput
+          bind:value={confirmPassword}
+          id="confirmPassword"
+          name="confirmPassword"
+          label="Confirm New Password"
+          required={true}
+          autocomplete="new-password"
+          placeholder="Confirm your new password"
+        />
+      </div>
+
+      <button type="submit">Update Password</button>
     </form>
 
     <div class="auth-links">
-      <a href="/auth/register">Need an account? Register</a>
-      <a href="/auth/reset-password">Forgot password?</a>
+      <a href="/auth/login">Back to Login</a>
     </div>
   </div>
 </div>
@@ -89,39 +84,31 @@
     max-width: 400px;
   }
 
-  .auth-card h1 {
+  h1 {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 0.5rem;
     color: #1f2937;
     font-size: 1.875rem;
     font-weight: 600;
   }
 
-  .form-group {
-    margin-bottom: 1rem;
-  }
-
-  label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: #374151;
+  .subtitle {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #6b7280;
     font-size: 0.875rem;
+    line-height: 1.5;
   }
 
-  input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 1rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  .form-group {
+    margin-bottom: 1.5rem;
   }
 
-  input:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  .form-group small {
+    display: block;
+    margin-top: 0.5rem;
+    color: #6b7280;
+    font-size: 0.875rem;
   }
 
   button {
@@ -150,22 +137,10 @@
     margin-bottom: 1rem;
   }
 
-  .success {
-    background-color: #d1fae5;
-    color: #065f46;
-    border: 1px solid #10b981;
-    padding: 0.75rem;
-    border-radius: 6px;
-    margin-bottom: 1rem;
-  }
-
   .auth-links {
     margin-top: 1.5rem;
     padding-top: 1rem;
     border-top: 1px solid #dee2e6;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
     text-align: center;
   }
 
@@ -187,10 +162,6 @@
 
     .auth-card {
       padding: 2rem;
-    }
-
-    input {
-      font-size: 16px; /* Prevents zoom on iOS */
     }
   }
 </style>

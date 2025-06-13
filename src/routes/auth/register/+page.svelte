@@ -137,25 +137,29 @@
 
 <style>
   .auth-container {
-    max-width: 500px;
-    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   }
 
   .auth-card {
     background: white;
     border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border: 1px solid #dee2e6;
+    padding: 2.5rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 450px;
   }
 
   .auth-card h1 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #333;
-    margin: 0 0 1.5rem;
     text-align: center;
+    margin-bottom: 2rem;
+    color: #1f2937;
+    font-size: 1.875rem;
+    font-weight: 600;
   }
 
   .form-group {
@@ -166,21 +170,23 @@
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 500;
-    color: #333;
+    color: #374151;
+    font-size: 0.875rem;
   }
 
   input {
     width: 100%;
     padding: 0.75rem;
-    border: 1px solid #dee2e6;
+    border: 1px solid #d1d5db;
     border-radius: 6px;
     font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
 
   input:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   }
 
   button {
@@ -253,5 +259,21 @@
     margin: 0;
     color: #424242;
     font-size: 0.875rem;
+  }
+
+  /* Mobile optimizations */
+  @media (max-width: 640px) {
+    .auth-container {
+      padding: 1rem;
+    }
+
+    .auth-card {
+      padding: 2rem;
+      max-width: none;
+    }
+
+    input {
+      font-size: 16px; /* Prevents zoom on iOS */
+    }
   }
 </style>

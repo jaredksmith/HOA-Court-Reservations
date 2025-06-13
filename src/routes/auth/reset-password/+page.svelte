@@ -2,16 +2,13 @@
   import { enhance } from '$app/forms';
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
-  import PasswordInput from '$lib/components/ui/PasswordInput.svelte';
 
   export let form;
 
-  let password = '';
   let emailInput: HTMLInputElement;
 
-  // Check for success messages from URL params
-  $: resetSuccess = $page.url.searchParams.get('reset') === 'success';
-  $: registrationSuccess = $page.url.searchParams.get('registered') === 'true';
+  // Check for error messages from URL params
+  $: errorFromUrl = $page.url.searchParams.get('error');
 
   onMount(() => {
     // Focus the email input after component mounts
@@ -21,52 +18,54 @@
   });
 </script>
 
+<svelte:head>
+  <title>Reset Password - HOA Court Reservations</title>
+</svelte:head>
+
 <div class="auth-container">
   <div class="auth-card">
-    <h1>Login</h1>
+    <h1>Reset Password</h1>
+    <p class="subtitle">Enter your email address and we'll send you a link to reset your password.</p>
 
-    {#if resetSuccess}
+    {#if form?.success}
       <div class="success">
-        Your password has been successfully reset. You can now log in with your new password.
+        {form.message}
+      </div>
+      <div class="auth-links">
+        <a href="/auth/login">Back to Login</a>
+      </div>
+    {:else}
+      {#if errorFromUrl}
+        <div class="error">
+          {errorFromUrl === 'invalid_link' ? 'Invalid or expired reset link. Please request a new one.' : errorFromUrl}
+        </div>
+      {/if}
+
+      {#if form?.error}
+        <div class="error">{form.error}</div>
+      {/if}
+
+      <form method="POST" use:enhance>
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input 
+            type="email" 
+            id="email" 
+            name="email" 
+            bind:this={emailInput} 
+            required 
+            placeholder="Enter your email address"
+          />
+        </div>
+
+        <button type="submit">Send Reset Link</button>
+      </form>
+
+      <div class="auth-links">
+        <a href="/auth/login">Back to Login</a>
+        <a href="/auth/register">Need an account? Register</a>
       </div>
     {/if}
-
-    {#if registrationSuccess}
-      <div class="success">
-        Registration successful! You can now log in with your credentials.
-      </div>
-    {/if}
-
-    {#if form?.error}
-      <div class="error">{form.error}</div>
-    {/if}
-
-    <form method="POST" use:enhance>
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" bind:this={emailInput} required />
-      </div>
-
-      <div class="form-group">
-        <PasswordInput
-          bind:value={password}
-          id="password"
-          name="password"
-          label="Password"
-          required={true}
-          error={form?.error && form.error.toLowerCase().includes('password') ? form.error : null}
-        />
-        <!-- Hidden input to ensure form submission works -->
-        <input type="hidden" name="password" value={password} />
-      </div>
-
-      <button type="submit">Login</button>
-    </form>
-
-    <div class="auth-links">
-      <a href="/auth/register">Need an account? Register</a>
-      <a href="/auth/reset-password">Forgot password?</a>
-    </div>
   </div>
 </div>
 
@@ -89,16 +88,24 @@
     max-width: 400px;
   }
 
-  .auth-card h1 {
+  h1 {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 0.5rem;
     color: #1f2937;
     font-size: 1.875rem;
     font-weight: 600;
   }
 
+  .subtitle {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
   .form-group {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
   }
 
   label {
@@ -141,19 +148,20 @@
     background-color: #0056b3;
   }
 
-  .error {
-    background-color: #fee2e2;
-    color: #991b1b;
-    border: 1px solid #ef4444;
-    padding: 0.75rem;
-    border-radius: 6px;
-    margin-bottom: 1rem;
-  }
-
   .success {
     background-color: #d1fae5;
     color: #065f46;
     border: 1px solid #10b981;
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    text-align: center;
+  }
+
+  .error {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #ef4444;
     padding: 0.75rem;
     border-radius: 6px;
     margin-bottom: 1rem;

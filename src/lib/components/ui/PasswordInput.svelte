@@ -7,7 +7,7 @@
   export let label: string = 'Password';
   export let id: string = 'password';
   export let name: string = 'password';
-  export let autocomplete: string = 'current-password';
+  export let autocomplete: 'current-password' | 'new-password' | 'off' = 'current-password';
   
   let showPassword = false;
   let inputElement: HTMLInputElement;

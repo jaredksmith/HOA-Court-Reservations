@@ -3,6 +3,7 @@
   import { page } from '$app/stores';
   import { authStore } from '$lib/stores/auth';
   import PhoneInput from '$lib/components/ui/PhoneInput.svelte';
+  import PasswordInput from '$lib/components/ui/PasswordInput.svelte';
   import Button from '$lib/components/ui/Button.svelte';
   import { normalizePhoneNumber, isValidPhoneNumber } from '$lib/utils/phone';
   
@@ -13,6 +14,13 @@
   let phoneNumber = data.profile.phone_number || '';
   let phoneError: string | null = null;
   let isSubmitting = false;
+
+  // Password change variables
+  let isChangingPassword = false;
+  let currentPassword = '';
+  let newPassword = '';
+  let confirmPassword = '';
+  let isPasswordSubmitting = false;
 
   // Form validation
   function validatePhone() {
@@ -42,14 +50,38 @@
     isEditing = !isEditing;
   }
 
+  // Password change functions
+  function togglePasswordChange() {
+    if (isChangingPassword) {
+      // Reset password fields when canceling
+      currentPassword = '';
+      newPassword = '';
+      confirmPassword = '';
+    }
+    isChangingPassword = !isChangingPassword;
+  }
+
+  function handlePasswordSubmit() {
+    isPasswordSubmitting = true;
+  }
+
   // Show success/error messages
   $: if (form?.success) {
     isEditing = false;
     isSubmitting = false;
+    // Reset password form if password was changed successfully
+    if (form.message?.includes('Password changed')) {
+      isChangingPassword = false;
+      isPasswordSubmitting = false;
+      currentPassword = '';
+      newPassword = '';
+      confirmPassword = '';
+    }
   }
-  
+
   $: if (form?.error) {
     isSubmitting = false;
+    isPasswordSubmitting = false;
   }
 </script>
 
@@ -256,6 +288,78 @@
           </small>
         </div>
       </div>
+    </div>
+
+    <!-- Password Change Card -->
+    <div class="profile-card">
+      <div class="card-header">
+        <h2>Change Password</h2>
+        {#if !isChangingPassword}
+          <Button variant="secondary" size="small" on:click={togglePasswordChange}>
+            Change Password
+          </Button>
+        {/if}
+      </div>
+
+      {#if isChangingPassword}
+        <!-- Password Change Form -->
+        <form method="POST" action="?/changePassword" use:enhance on:submit={handlePasswordSubmit}>
+          <div class="form-grid">
+            <div class="form-group">
+              <PasswordInput
+                bind:value={currentPassword}
+                id="currentPassword"
+                name="currentPassword"
+                label="Current Password"
+                required={true}
+                autocomplete="current-password"
+              />
+            </div>
+
+            <div class="form-group">
+              <PasswordInput
+                bind:value={newPassword}
+                id="newPassword"
+                name="newPassword"
+                label="New Password"
+                required={true}
+                autocomplete="new-password"
+              />
+              <small>Password must be at least 8 characters long</small>
+            </div>
+
+            <div class="form-group">
+              <PasswordInput
+                bind:value={confirmPassword}
+                id="confirmPassword"
+                name="confirmPassword"
+                label="Confirm New Password"
+                required={true}
+                autocomplete="new-password"
+              />
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <Button type="submit" variant="primary" disabled={isPasswordSubmitting}>
+              {isPasswordSubmitting ? 'Changing Password...' : 'Change Password'}
+            </Button>
+            <Button type="button" variant="secondary" on:click={togglePasswordChange}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      {:else}
+        <!-- Password Info -->
+        <div class="password-info">
+          <p>Keep your account secure by using a strong password.</p>
+          <ul>
+            <li>Use at least 8 characters</li>
+            <li>Include a mix of letters, numbers, and symbols</li>
+            <li>Don't reuse passwords from other accounts</li>
+          </ul>
+        </div>
+      {/if}
     </div>
   </div>
 </div>
@@ -470,6 +574,25 @@
     background-color: #fee2e2;
     color: #991b1b;
     border: 1px solid #ef4444;
+  }
+
+  .password-info {
+    color: var(--color-text-secondary);
+  }
+
+  .password-info p {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+
+  .password-info ul {
+    margin: 0;
+    padding-left: 1.5rem;
+  }
+
+  .password-info li {
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
   }
 
   @media (max-width: 768px) {
