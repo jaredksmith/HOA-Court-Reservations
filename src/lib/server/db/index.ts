@@ -254,16 +254,20 @@ export async function getProfileByUserId(userId: string): Promise<Profile | null
 }
 
 // Get profiles by HOA ID
-export async function getProfilesByHOAId(hoaId: string): Promise<Profile[]> {
-  const { data, error } = await supabase
+export async function getProfilesByHOAId(hoaId: string, activeOnly: boolean = true): Promise<Profile[]> {
+  let query = supabase
     .from('profiles')
     .select(`
       *,
       hoa:hoas(*)
     `)
-    .eq('hoa_id', hoaId)
-    .eq('is_active', true)
-    .order('created_at', { ascending: false });
+    .eq('hoa_id', hoaId);
+
+  if (activeOnly) {
+    query = query.eq('is_active', true);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false });
 
   if (error) throw error;
   return data as Profile[];
