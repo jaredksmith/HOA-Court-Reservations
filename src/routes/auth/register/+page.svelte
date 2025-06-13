@@ -2,12 +2,14 @@
   import { enhance } from '$app/forms';
   import { page } from '$app/stores';
   import PhoneInput from '$lib/components/ui/PhoneInput.svelte';
+  import PasswordInput from '$lib/components/ui/PasswordInput.svelte';
   import { normalizePhoneNumber, isValidPhoneNumber } from '$lib/utils/phone';
 
   export let form;
 
   let phoneNumber = '';
   let phoneError: string | null = null;
+  let password = '';
 
   // Get invitation code from URL params
   $: invitationCode = $page.url.searchParams.get('code') || '';
@@ -62,8 +64,17 @@
     </div>
 
     <div class="form-group">
-      <label for="password">Password</label>
-      <input type="password" id="password" name="password" required />
+      <PasswordInput
+        bind:value={password}
+        id="password"
+        name="password"
+        label="Password"
+        required={true}
+        autocomplete="new-password"
+        error={form?.error && form.error.toLowerCase().includes('password') ? form.error : null}
+      />
+      <!-- Hidden input to ensure form submission works -->
+      <input type="hidden" name="password" value={password} />
     </div>
 
     <div class="form-group">

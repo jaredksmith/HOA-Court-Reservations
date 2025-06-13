@@ -1,7 +1,10 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  
+  import PasswordInput from '$lib/components/ui/PasswordInput.svelte';
+
   export let form;
+
+  let password = '';
 </script>
 
 <div class="auth-container">
@@ -18,8 +21,16 @@
     </div>
     
     <div class="form-group">
-      <label for="password">Password</label>
-      <input type="password" id="password" name="password" required />
+      <PasswordInput
+        bind:value={password}
+        id="password"
+        name="password"
+        label="Password"
+        required={true}
+        error={form?.error && form.error.toLowerCase().includes('password') ? form.error : null}
+      />
+      <!-- Hidden input to ensure form submission works -->
+      <input type="hidden" name="password" value={password} />
     </div>
     
     <button type="submit">Login</button>

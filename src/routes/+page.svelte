@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
 	import { authStore } from '$lib/stores/auth';
 	import { bookingStore, bookingActions } from '$lib/stores/booking';
 	import BookingCard from '$lib/components/booking/BookingCard.svelte';
@@ -8,11 +7,8 @@
 	
 	let loading = true;
 	
-	// Reactive statement to handle auth state changes
-	$: if ($authStore.initialized && !$authStore.user) {
-		console.log('🔄 No user found, redirecting to login');
-		goto('/auth/login');
-	}
+	// Note: Server-side authentication check now handles redirects
+	// No need for client-side redirect since +page.server.ts handles it
 
 	onMount(async () => {
 		// Only load bookings if user is authenticated

@@ -3,10 +3,11 @@ import { supabase } from '$lib/server/db';
 import type { Actions } from './$types';
 
 export const actions: Actions = {
-  default: async ({ request, cookies }) => {
+  default: async ({ request, cookies, url }) => {
     const formData = await request.formData();
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
+    const redirectTo = url.searchParams.get('redirectTo') || '/';
     
     if (!email || !password) {
       return fail(400, { error: 'Email and password are required' });
@@ -36,10 +37,10 @@ export const actions: Actions = {
         maxAge: 60 * 60 * 24 * 7 // 1 week
       });
 
-      console.log('✅ Session cookie set, redirecting to dashboard');
+      console.log('✅ Session cookie set, redirecting to:', redirectTo);
 
-      // Redirect to the dashboard
-      throw redirect(303, '/');
+      // Redirect to the intended destination or dashboard
+      throw redirect(303, redirectTo);
     } catch (err) {
       // Check if it's a redirect response (which is expected)
       if (err instanceof Response && err.status >= 300 && err.status < 400) {

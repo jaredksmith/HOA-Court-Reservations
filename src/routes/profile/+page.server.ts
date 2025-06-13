@@ -3,10 +3,13 @@ import * as db from '$lib/server/db';
 import { normalizePhoneNumber, isValidPhoneNumber } from '$lib/utils/phone';
 import type { PageServerLoad, Actions } from './$types';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
   // Redirect to login if not authenticated
   if (!locals.user) {
-    throw redirect(302, '/auth/login');
+    // Preserve the current URL as the intended destination
+    const redirectTo = url.pathname + url.search;
+    const loginUrl = `/auth/login?redirectTo=${encodeURIComponent(redirectTo)}`;
+    throw redirect(302, loginUrl);
   }
 
   try {

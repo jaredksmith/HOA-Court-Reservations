@@ -20,13 +20,6 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 
   const { user, profile, hoa } = userWithHOA;
 
-  // Check if user has admin permissions
-  const isAdmin = profile.role === 'super_admin' || profile.role === 'hoa_admin';
-  
-  if (!isAdmin) {
-    throw redirect(303, '/dashboard');
-  }
-
   return {
     auth: {
       user,
