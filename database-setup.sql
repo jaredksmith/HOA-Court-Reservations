@@ -55,6 +55,12 @@ CREATE TABLE IF NOT EXISTS profiles (
   phone_number TEXT NOT NULL,
   household_id TEXT NOT NULL,
 
+  -- Address fields
+  street_address TEXT,
+  city TEXT,
+  state TEXT,
+  zip_code TEXT,
+
   -- User role within HOA
   role TEXT CHECK (role IN ('super_admin', 'hoa_admin', 'member')) DEFAULT 'member',
 

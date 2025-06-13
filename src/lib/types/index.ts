@@ -49,6 +49,13 @@ export type Profile = {
   full_name: string;
   phone_number: string;
   household_id: string;
+
+  // Address fields
+  street_address?: string;
+  city?: string;
+  state?: string;
+  zip_code?: string;
+
   role: UserRole;
   prime_hours: number;
   standard_hours: number;

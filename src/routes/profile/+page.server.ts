@@ -45,6 +45,12 @@ export const actions: Actions = {
       const phoneNumber = formData.get('phoneNumber')?.toString();
       const householdId = formData.get('householdId')?.toString();
 
+      // Address fields (optional)
+      const streetAddress = formData.get('streetAddress')?.toString();
+      const city = formData.get('city')?.toString();
+      const state = formData.get('state')?.toString();
+      const zipCode = formData.get('zipCode')?.toString();
+
       // Validate required fields
       if (!fullName || fullName.trim() === '') {
         return fail(400, { error: 'Full name is required' });
@@ -74,13 +80,21 @@ export const actions: Actions = {
       // Import the admin client from the db module
       const { supabaseAdmin } = await import('$lib/server/db');
 
+      const updateData: any = {
+        full_name: fullName.trim(),
+        phone_number: normalizedPhone,
+        household_id: householdId.trim()
+      };
+
+      // Add address fields if provided
+      if (streetAddress !== undefined) updateData.street_address = streetAddress.trim() || null;
+      if (city !== undefined) updateData.city = city.trim() || null;
+      if (state !== undefined) updateData.state = state.trim() || null;
+      if (zipCode !== undefined) updateData.zip_code = zipCode.trim() || null;
+
       const { error } = await supabaseAdmin
         .from('profiles')
-        .update({
-          full_name: fullName.trim(),
-          phone_number: normalizedPhone,
-          household_id: householdId.trim()
-        })
+        .update(updateData)
         .eq('user_id', locals.user.id);
 
       if (error) {

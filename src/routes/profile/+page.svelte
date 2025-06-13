@@ -1,26 +1,31 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import { page } from '$app/stores';
-  import { authStore } from '$lib/stores/auth';
   import PhoneInput from '$lib/components/ui/PhoneInput.svelte';
   import PasswordInput from '$lib/components/ui/PasswordInput.svelte';
+  import StateSelect from '$lib/components/ui/StateSelect.svelte';
   import Button from '$lib/components/ui/Button.svelte';
-  import { normalizePhoneNumber, isValidPhoneNumber } from '$lib/utils/phone';
+  import { normalizePhoneNumber, isValidPhoneNumber, formatPhoneForDisplay } from '$lib/utils/phone';
   
   export let data;
   export let form;
 
   let isEditing = false;
-  let phoneNumber = data.profile.phone_number || '';
+  let phoneNumber = formatPhoneForDisplay(data.profile.phone_number || '');
   let phoneError: string | null = null;
   let isSubmitting = false;
 
-  // Password change variables
+  // Password change variables (now integrated into Personal Information section)
   let isChangingPassword = false;
   let currentPassword = '';
   let newPassword = '';
   let confirmPassword = '';
   let isPasswordSubmitting = false;
+
+  // Address fields
+  let streetAddress = data.profile.street_address || '';
+  let city = data.profile.city || '';
+  let state = data.profile.state || '';
+  let zipCode = data.profile.zip_code || '';
 
   // Form validation
   function validatePhone() {
@@ -44,8 +49,16 @@
   function toggleEdit() {
     if (isEditing) {
       // Reset to original values when canceling
-      phoneNumber = data.profile.phone_number || '';
+      phoneNumber = formatPhoneForDisplay(data.profile.phone_number || '');
+      streetAddress = data.profile.street_address || '';
+      city = data.profile.city || '';
+      state = data.profile.state || '';
+      zipCode = data.profile.zip_code || '';
       phoneError = null;
+      // Also reset password change state if it was open
+      if (isChangingPassword) {
+        togglePasswordChange();
+      }
     }
     isEditing = !isEditing;
   }
@@ -113,9 +126,14 @@
       <div class="card-header">
         <h2>Personal Information</h2>
         {#if !isEditing}
-          <Button variant="secondary" size="small" on:click={toggleEdit}>
-            Edit Profile
-          </Button>
+          <div class="header-actions">
+            <Button variant="secondary" size="small" on:click={toggleEdit}>
+              Edit Profile
+            </Button>
+            <Button variant="secondary" size="small" on:click={togglePasswordChange}>
+              Change Password
+            </Button>
+          </div>
         {/if}
       </div>
 
@@ -123,100 +141,302 @@
         <!-- Edit Form -->
         <form method="POST" action="?/updateProfile" use:enhance on:submit={handleSubmit}>
           <div class="form-grid">
-            <div class="form-group">
-              <label for="fullName">Full Name</label>
-              <input 
-                type="text" 
-                id="fullName" 
-                name="fullName" 
-                value={data.profile.full_name}
-                required 
-              />
+            <!-- Full Name - Full width -->
+            <div class="form-row full-width">
+              <div class="form-group">
+                <label for="fullName">Full Name</label>
+                <input
+                  type="text"
+                  id="fullName"
+                  name="fullName"
+                  value={data.profile.full_name}
+                  required
+                />
+              </div>
             </div>
 
-            <div class="form-group">
-              <label for="email">Email</label>
-              <input 
-                type="email" 
-                id="email" 
-                value={data.user.email}
-                disabled
-                title="Email cannot be changed. Contact your HOA administrator if you need to update your email."
-              />
-              <small>Email cannot be changed</small>
+            <!-- Email and Phone Number - Side by side on desktop -->
+            <div class="form-row two-columns">
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input
+                  type="email"
+                  id="email"
+                  value={data.user.email}
+                  disabled
+                  title="Email cannot be changed. Contact your HOA administrator if you need to update your email."
+                />
+                <small>Email cannot be changed</small>
+              </div>
+
+              <div class="form-group">
+                <PhoneInput
+                  bind:value={phoneNumber}
+                  error={phoneError}
+                  required={true}
+                  label="Phone Number"
+                  id="phoneNumber"
+                  name="phoneNumber"
+                />
+              </div>
             </div>
 
-            <div class="form-group">
-              <PhoneInput
-                bind:value={phoneNumber}
-                error={phoneError}
-                required={true}
-                label="Phone Number"
-                id="phoneNumber"
-                name="phoneNumber"
-              />
+            <!-- Household ID - Full width -->
+            <div class="form-row full-width">
+              <div class="form-group">
+                <label for="householdId">Household ID</label>
+                <input
+                  type="text"
+                  id="householdId"
+                  name="householdId"
+                  value={data.profile.household_id}
+                  required
+                />
+                <small>Your household identifier (e.g., unit number, address)</small>
+              </div>
             </div>
 
-            <div class="form-group">
-              <label for="householdId">Household ID</label>
-              <input 
-                type="text" 
-                id="householdId" 
-                name="householdId" 
-                value={data.profile.household_id}
-                required 
-              />
-              <small>Your household identifier (e.g., unit number, address)</small>
+            <!-- Street Address - Full width -->
+            <div class="form-row full-width">
+              <div class="form-group">
+                <label for="streetAddress">Street Address</label>
+                <input
+                  type="text"
+                  id="streetAddress"
+                  name="streetAddress"
+                  bind:value={streetAddress}
+                />
+              </div>
+            </div>
+
+            <!-- City, State, ZIP Code - Three columns on desktop -->
+            <div class="form-row three-columns">
+              <div class="form-group city-field">
+                <label for="city">City</label>
+                <input
+                  type="text"
+                  id="city"
+                  name="city"
+                  bind:value={city}
+                />
+              </div>
+
+              <div class="form-group state-field">
+                <StateSelect
+                  bind:value={state}
+                  id="state"
+                  name="state"
+                  label="State"
+                  placeholder="Select a state"
+                />
+              </div>
+
+              <div class="form-group zip-field">
+                <label for="zipCode">ZIP Code</label>
+                <input
+                  type="text"
+                  id="zipCode"
+                  name="zipCode"
+                  bind:value={zipCode}
+                  maxlength="10"
+                  placeholder="12345"
+                />
+              </div>
             </div>
           </div>
 
+          <!-- Password Change Section (when enabled) -->
+          {#if isChangingPassword}
+            <div class="password-change-section">
+              <h3>Change Password</h3>
+              <div class="form-grid">
+                <div class="form-row full-width">
+                  <div class="form-group">
+                    <PasswordInput
+                      bind:value={currentPassword}
+                      id="currentPassword"
+                      name="currentPassword"
+                      label="Current Password"
+                      required={true}
+                      autocomplete="current-password"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-row full-width">
+                  <div class="form-group">
+                    <PasswordInput
+                      bind:value={newPassword}
+                      id="newPassword"
+                      name="newPassword"
+                      label="New Password"
+                      required={true}
+                      autocomplete="new-password"
+                    />
+                    <small>Password must be at least 8 characters long</small>
+                  </div>
+                </div>
+
+                <div class="form-row full-width">
+                  <div class="form-group">
+                    <PasswordInput
+                      bind:value={confirmPassword}
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      label="Confirm New Password"
+                      required={true}
+                      autocomplete="new-password"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          {/if}
+
           <div class="form-actions">
-            <Button type="submit" variant="primary" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
-            </Button>
+            {#if !isChangingPassword}
+              <!-- Profile update actions -->
+              <Button type="submit" variant="primary" disabled={isSubmitting}>
+                {isSubmitting ? 'Saving...' : 'Save Changes'}
+              </Button>
+            {/if}
             <Button type="button" variant="secondary" on:click={toggleEdit}>
               Cancel
             </Button>
           </div>
         </form>
+
+        <!-- Separate Password Change Form (when in edit mode) -->
+        {#if isChangingPassword && isEditing}
+          <form method="POST" action="?/changePassword" use:enhance on:submit={handlePasswordSubmit} class="password-form">
+            <div class="form-actions">
+              <Button type="submit" variant="primary" disabled={isPasswordSubmitting}>
+                {isPasswordSubmitting ? 'Changing Password...' : 'Save Password'}
+              </Button>
+              <Button type="button" variant="secondary" on:click={togglePasswordChange}>
+                Cancel Password Change
+              </Button>
+            </div>
+          </form>
+        {/if}
       {:else}
         <!-- View Mode -->
         <div class="profile-info">
           <div class="info-grid">
             <div class="info-item">
-              <label>Full Name</label>
+              <span class="info-label">Full Name</span>
               <span>{data.profile.full_name}</span>
             </div>
 
             <div class="info-item">
-              <label>Email</label>
+              <span class="info-label">Email</span>
               <span>{data.user.email}</span>
             </div>
 
             <div class="info-item">
-              <label>Phone Number</label>
-              <span>{data.profile.phone_number}</span>
+              <span class="info-label">Phone Number</span>
+              <span>{formatPhoneForDisplay(data.profile.phone_number)}</span>
             </div>
 
             <div class="info-item">
-              <label>Household ID</label>
+              <span class="info-label">Household ID</span>
               <span>{data.profile.household_id}</span>
             </div>
 
+            <!-- Address Fields -->
             <div class="info-item">
-              <label>Role</label>
+              <span class="info-label">Street Address</span>
+              <span>{data.profile.street_address || 'Not specified'}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">City</span>
+              <span>{data.profile.city || 'Not specified'}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">State</span>
+              <span>{data.profile.state || 'Not specified'}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">ZIP Code</span>
+              <span>{data.profile.zip_code || 'Not specified'}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Role</span>
               <span class="role-badge role-{data.profile.role}">
-                {data.profile.role === 'super_admin' ? 'Super Admin' : 
+                {data.profile.role === 'super_admin' ? 'Super Admin' :
                  data.profile.role === 'hoa_admin' ? 'HOA Admin' : 'Member'}
               </span>
             </div>
 
             <div class="info-item">
-              <label>Member Since</label>
+              <span class="info-label">Member Since</span>
               <span>{new Date(data.profile.joined_at).toLocaleDateString()}</span>
             </div>
           </div>
         </div>
+
+        <!-- Password Change Section (when not editing but password change is active) -->
+        {#if isChangingPassword && !isEditing}
+          <div class="password-change-standalone">
+            <h3>Change Password</h3>
+            <form method="POST" action="?/changePassword" use:enhance on:submit={handlePasswordSubmit}>
+              <div class="form-grid">
+                <div class="form-row full-width">
+                  <div class="form-group">
+                    <PasswordInput
+                      bind:value={currentPassword}
+                      id="currentPassword"
+                      name="currentPassword"
+                      label="Current Password"
+                      required={true}
+                      autocomplete="current-password"
+                    />
+                  </div>
+                </div>
+
+                <div class="form-row full-width">
+                  <div class="form-group">
+                    <PasswordInput
+                      bind:value={newPassword}
+                      id="newPassword"
+                      name="newPassword"
+                      label="New Password"
+                      required={true}
+                      autocomplete="new-password"
+                    />
+                    <small>Password must be at least 8 characters long</small>
+                  </div>
+                </div>
+
+                <div class="form-row full-width">
+                  <div class="form-group">
+                    <PasswordInput
+                      bind:value={confirmPassword}
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      label="Confirm New Password"
+                      required={true}
+                      autocomplete="new-password"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <Button type="submit" variant="primary" disabled={isPasswordSubmitting}>
+                  {isPasswordSubmitting ? 'Changing Password...' : 'Save Password'}
+                </Button>
+                <Button type="button" variant="secondary" on:click={togglePasswordChange}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </div>
+        {/if}
       {/if}
     </div>
 
@@ -229,33 +449,33 @@
       <div class="hoa-info">
         <div class="info-grid">
           <div class="info-item">
-            <label>HOA Name</label>
-            <span>{data.hoa.name}</span>
+            <span class="info-label">HOA Name</span>
+            <span>{data.hoa?.name || 'Not specified'}</span>
           </div>
 
           <div class="info-item">
-            <label>Address</label>
-            <span>{data.hoa.address || 'Not specified'}</span>
+            <span class="info-label">Address</span>
+            <span>{data.hoa?.address || 'Not specified'}</span>
           </div>
 
           <div class="info-item">
-            <label>Contact Email</label>
-            <span>{data.hoa.contact_email || 'Not specified'}</span>
+            <span class="info-label">Contact Email</span>
+            <span>{data.hoa?.contact_email || 'Not specified'}</span>
           </div>
 
           <div class="info-item">
-            <label>Contact Phone</label>
-            <span>{data.hoa.contact_phone || 'Not specified'}</span>
+            <span class="info-label">Contact Phone</span>
+            <span>{data.hoa?.contact_phone || 'Not specified'}</span>
           </div>
 
           <div class="info-item">
-            <label>Total Courts</label>
-            <span>{data.hoa.total_courts}</span>
+            <span class="info-label">Total Courts</span>
+            <span>{data.hoa?.total_courts || 'Not specified'}</span>
           </div>
 
           <div class="info-item">
-            <label>Court Names</label>
-            <span>{data.hoa.court_names?.join(', ') || 'Not specified'}</span>
+            <span class="info-label">Court Names</span>
+            <span>{data.hoa?.court_names?.join(', ') || 'Not specified'}</span>
           </div>
         </div>
       </div>
@@ -272,7 +492,7 @@
           <div class="balance-item prime">
             <div class="balance-value">{data.profile.prime_hours}</div>
             <div class="balance-label">Prime Hours</div>
-            <div class="balance-time">({data.hoa.prime_time_start} - {data.hoa.prime_time_end})</div>
+            <div class="balance-time">({data.hoa?.prime_time_start || '17:00'} - {data.hoa?.prime_time_end || '21:00'})</div>
           </div>
 
           <div class="balance-item standard">
@@ -290,77 +510,7 @@
       </div>
     </div>
 
-    <!-- Password Change Card -->
-    <div class="profile-card">
-      <div class="card-header">
-        <h2>Change Password</h2>
-        {#if !isChangingPassword}
-          <Button variant="secondary" size="small" on:click={togglePasswordChange}>
-            Change Password
-          </Button>
-        {/if}
-      </div>
 
-      {#if isChangingPassword}
-        <!-- Password Change Form -->
-        <form method="POST" action="?/changePassword" use:enhance on:submit={handlePasswordSubmit}>
-          <div class="form-grid">
-            <div class="form-group">
-              <PasswordInput
-                bind:value={currentPassword}
-                id="currentPassword"
-                name="currentPassword"
-                label="Current Password"
-                required={true}
-                autocomplete="current-password"
-              />
-            </div>
-
-            <div class="form-group">
-              <PasswordInput
-                bind:value={newPassword}
-                id="newPassword"
-                name="newPassword"
-                label="New Password"
-                required={true}
-                autocomplete="new-password"
-              />
-              <small>Password must be at least 8 characters long</small>
-            </div>
-
-            <div class="form-group">
-              <PasswordInput
-                bind:value={confirmPassword}
-                id="confirmPassword"
-                name="confirmPassword"
-                label="Confirm New Password"
-                required={true}
-                autocomplete="new-password"
-              />
-            </div>
-          </div>
-
-          <div class="form-actions">
-            <Button type="submit" variant="primary" disabled={isPasswordSubmitting}>
-              {isPasswordSubmitting ? 'Changing Password...' : 'Change Password'}
-            </Button>
-            <Button type="button" variant="secondary" on:click={togglePasswordChange}>
-              Cancel
-            </Button>
-          </div>
-        </form>
-      {:else}
-        <!-- Password Info -->
-        <div class="password-info">
-          <p>Keep your account secure by using a strong password.</p>
-          <ul>
-            <li>Use at least 8 characters</li>
-            <li>Include a mix of letters, numbers, and symbols</li>
-            <li>Don't reuse passwords from other accounts</li>
-          </ul>
-        </div>
-      {/if}
-    </div>
   </div>
 </div>
 
@@ -417,7 +567,62 @@
     margin: 0;
   }
 
-  .form-grid,
+  .header-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .form-row.full-width {
+    flex-direction: column;
+  }
+
+  .form-row.two-columns {
+    flex-direction: column;
+  }
+
+  .form-row.three-columns {
+    flex-direction: column;
+  }
+
+  /* Desktop layout - screens wider than 768px */
+  @media (min-width: 769px) {
+    .form-row.two-columns {
+      flex-direction: row;
+    }
+
+    .form-row.two-columns .form-group {
+      flex: 1;
+    }
+
+    .form-row.three-columns {
+      flex-direction: row;
+    }
+
+    .form-row.three-columns .form-group.city-field {
+      flex: 2; /* ~50% width */
+    }
+
+    .form-row.three-columns .form-group.state-field {
+      flex: 1; /* ~25% width */
+    }
+
+    .form-row.three-columns .form-group.zip-field {
+      flex: 1; /* ~25% width */
+    }
+  }
+
   .info-grid {
     display: grid;
     gap: 1.5rem;
@@ -425,31 +630,48 @@
   }
 
   .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex: 1;
+    min-width: 0; /* Prevents flex items from overflowing */
+  }
+
+  .form-row.full-width .form-group {
+    flex: none;
   }
 
   .form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
     font-weight: 500;
-    color: var(--color-text-primary);
+    color: #374151;
+    font-size: 0.875rem;
   }
 
   .form-group input {
+    width: 100%;
     padding: 0.75rem;
-    border: 1px solid var(--color-border);
+    border: 1px solid #d1d5db;
     border-radius: 6px;
     font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .form-group input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   }
 
   .form-group input:disabled {
-    background-color: var(--color-background-secondary);
-    color: var(--color-text-secondary);
+    background-color: #f9fafb;
+    color: #6b7280;
     cursor: not-allowed;
   }
 
   .form-group small {
-    color: var(--color-text-secondary);
+    display: block;
+    color: #6c757d;
+    margin-top: 0.25rem;
     font-size: 0.875rem;
   }
 
@@ -467,7 +689,7 @@
     gap: 0.5rem;
   }
 
-  .info-item label {
+  .info-item .info-label {
     font-weight: 500;
     color: var(--color-text-secondary);
     font-size: 0.875rem;
@@ -475,7 +697,7 @@
     letter-spacing: 0.05em;
   }
 
-  .info-item span {
+  .info-item span:not(.info-label) {
     color: var(--color-text-primary);
     font-size: 1rem;
   }
@@ -576,23 +798,62 @@
     border: 1px solid #ef4444;
   }
 
-  .password-info {
-    color: var(--color-text-secondary);
+  .password-change-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border);
   }
 
-  .password-info p {
-    margin-bottom: 1rem;
-    font-size: 1rem;
+  .password-change-section h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 1.5rem;
   }
 
-  .password-info ul {
-    margin: 0;
-    padding-left: 1.5rem;
+  .password-change-standalone {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background-color: var(--color-background-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
   }
 
-  .password-info li {
-    margin-bottom: 0.5rem;
-    font-size: 0.875rem;
+  .password-change-standalone h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 1.5rem;
+  }
+
+  .password-form {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  /* Ensure PhoneInput and StateSelect components take full width of their containers */
+  .form-group :global(.phone-input-container),
+  .form-group :global(.state-select-container),
+  .form-group :global(.password-input-container) {
+    margin-bottom: 0;
+    width: 100%;
+  }
+
+  .form-group :global(.phone-input),
+  .form-group :global(.state-select),
+  .form-group :global(.password-input) {
+    width: 100%;
+  }
+
+  /* Ensure proper spacing between form rows */
+  .form-row + .form-row {
+    margin-top: 0.5rem;
+  }
+
+  /* Adjust spacing for password change section */
+  .password-change-section .form-row + .form-row {
+    margin-top: 0.5rem;
   }
 
   @media (max-width: 768px) {
@@ -600,7 +861,6 @@
       padding: 1rem;
     }
 
-    .form-grid,
     .info-grid {
       grid-template-columns: 1fr;
     }
@@ -611,6 +871,29 @@
 
     .form-actions {
       flex-direction: column;
+    }
+
+    .header-actions {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .password-change-standalone {
+      padding: 1rem;
+    }
+
+    .form-group input {
+      font-size: 16px; /* Prevents zoom on iOS */
+    }
+
+    /* Ensure all form rows stack vertically on mobile */
+    .form-row.two-columns,
+    .form-row.three-columns {
+      flex-direction: column;
+    }
+
+    .form-row {
+      gap: 0;
     }
   }
 </style>
